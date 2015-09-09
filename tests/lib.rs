@@ -1,3 +1,7 @@
+//! This is a simple example of a fsm for feeding a cat. The states of the fsm are the states of
+//! the cat food bowl. Our cat is very whiny and will always be fed when her bowl is empty and she
+//! meows. If there is already food in the bowl, she will have to eat it before we give her more.
+
 #[macro_use]
 extern crate fsm;
 
@@ -5,60 +9,81 @@ use fsm::{ThreadedFsm, LocalFsm, Fsm, FsmContext, StateFn, FsmHandler};
 
 #[derive(Debug, Clone)]
 pub struct Context {
-    pub view_number: u64,
-    pub op_number: u64
+    pub contents: u8
 }
 
 impl FsmContext for Context {
     fn new() -> Context {
         Context {
-            view_number: 0,
-            op_number: 0
+            contents: 0 // The bowl starts off empty
         }
     }
 }
 
 #[derive(Debug)]
 pub enum Msg {
-    Prepare,
-    PrepareOk
+    Meow,
+    Eat(u8) // % of food to eat
 }
 
 #[derive(Debug)]
-pub struct VrHandler;
+pub struct BowlHandler;
 
-impl FsmHandler for VrHandler {
+impl FsmHandler for BowlHandler {
     type Context = Context;
     type Msg = Msg;
 
-    fn initial_state() -> StateFn<VrHandler> {
-        next!(normal)
+    fn initial_state() -> StateFn<BowlHandler> {
+        next!(empty)
     }
 }
 
-pub fn normal(ctx: &mut Context, _msg: Msg) -> StateFn<VrHandler> {
-    // Mutate ctx as needed
-    ctx.view_number += 1;
-    // Transition to recovering state
-    next!(recovering)
+pub fn empty(ctx: &mut Context, msg: Msg) -> StateFn<BowlHandler> {
+    if let Msg::Meow = msg {
+        // Fill the bowl
+        ctx.contents = 100;
+        next!(full)
+    } else {
+        // Can't eat out of an empty bowl
+        next!(empty)
+    }
 }
 
-pub fn recovering(ctx: &mut Context, _msg: Msg) -> StateFn<VrHandler> {
-    // Mutate ctx as needed
-    ctx.op_number += 1;
-    // Transition to normal state
-    next!(normal)
+pub fn full(ctx: &mut Context, msg: Msg) -> StateFn<BowlHandler> {
+    if let Msg::Eat(pct) = msg {
+        if pct >= ctx.contents {
+            ctx.contents = 0;
+            next!(empty)
+        } else {
+            ctx.contents -= pct;
+            next!(full)
+        }
+    } else {
+        next!(full)
+    }
 }
 
-fn assert_state_transitions<T: Fsm<VrHandler>>(mut fsm: T) {
+fn assert_state_transitions<T: Fsm<BowlHandler>>(mut fsm: T) {
     fsm.trace_on("/tmp/fsm_trace.txt");
     let (name, ctx) = fsm.get_state();
-    assert_eq!(name, "normal");
-    assert_eq!(ctx.view_number, 0);
-    fsm.send_msg(Msg::Prepare);
+    assert_eq!(name, "empty");
+    assert_eq!(ctx.contents, 0);
+    fsm.send_msg(Msg::Meow);
     let (name, ctx) = fsm.get_state();
-    assert_eq!(name, "recovering");
-    assert_eq!(ctx.view_number, 1);
+    assert_eq!(name, "full");
+    assert_eq!(ctx.contents, 100);
+    fsm.send_msg(Msg::Eat(30));
+    let (name, ctx) = fsm.get_state();
+    assert_eq!(name, "full");
+    assert_eq!(ctx.contents, 70);
+    fsm.send_msg(Msg::Meow);
+    let (name, ctx) = fsm.get_state();
+    assert_eq!(name, "full");
+    assert_eq!(ctx.contents, 70);
+    fsm.send_msg(Msg::Eat(75));
+    let (name, ctx) = fsm.get_state();
+    assert_eq!(name, "empty");
+    assert_eq!(ctx.contents, 0);
 }
 
 #[test]
