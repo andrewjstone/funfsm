@@ -1,0 +1,4 @@
+[package]
+name = "fsm"
+version = "0.1.0"
+authors = ["Andrew J. Stone <andrew.j.stone.1@gmail.com>"]
