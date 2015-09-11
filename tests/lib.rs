@@ -6,6 +6,9 @@
 extern crate fsm;
 
 use fsm::{ThreadedFsm, LocalFsm, Fsm, FsmContext, StateFn, FsmHandler};
+use fsm::constraints::Constraints;
+use fsm::constraints;
+use fsm::fsm_check::Checker;
 
 #[derive(Debug, Clone)]
 pub struct Context {
@@ -92,9 +95,22 @@ fn test_threaded() {
     assert_state_transitions(fsm);
 }
 
-
 #[test]
 fn test_local() {
     let fsm = LocalFsm::new();
     assert_state_transitions(fsm);
+}
+
+#[test]
+fn test_check() {
+    let msgs = vec![Msg::Meow, Msg::Eat(30), Msg::Eat(70), Msg::Meow, Msg::Eat(50), Msg::Meow];
+    let mut c = Constraints::new();
+    precondition!(c, "empty", |ctx: &Context| ctx.contents == 0);
+    precondition!(c, "full", |ctx: &Context| ctx.contents > 0 && ctx.contents <= 100);
+    postcondition!(c, "empty", |ctx: &Context| ctx.contents == 0 || ctx.contents == 100);
+    invariant!(c, |ctx: &Context| ctx.contents <= 100);
+    transition!(c, "empty", "full", |ctx: &Context| ctx.contents == 100);
+    transition!(c, "full", "empty", |ctx: &Context| ctx.contents == 0);
+    let mut checker = Checker::<BowlHandler>::new(c);
+    assert_eq!(Ok(()), checker.check(msgs));
 }

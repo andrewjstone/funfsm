@@ -2,6 +2,8 @@
 pub mod fsm;
 pub mod threaded_fsm;
 pub mod local_fsm;
+pub mod constraints;
+pub mod fsm_check;
 
 pub use fsm::{
     Fsm,
