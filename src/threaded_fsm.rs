@@ -1,14 +1,14 @@
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::thread::JoinHandle;
 use std::thread;
-use fsm::{Fsm, FsmContext, FsmHandler};
+use fsm::{Msg, Fsm, FsmContext, FsmHandler};
 use local_fsm::LocalFsm;
 
-enum Req<T: FsmHandler> {
+enum Req {
     GetState,
     TraceOn(String),
     TraceOff,
-    FsmMsg(T::Msg)
+    FsmMsg(Msg)
 }
 
 enum Rpy<T: FsmHandler> {
@@ -16,7 +16,7 @@ enum Rpy<T: FsmHandler> {
 }
 
 pub struct ThreadedFsm<T: 'static + FsmHandler> {
-    sender: Sender<Req<T>>,
+    sender: Sender<Req>,
     receiver: Receiver<Rpy<T>>,
     pub thread: JoinHandle<()>
 }
@@ -67,7 +67,7 @@ impl<T: FsmHandler> Fsm<T> for ThreadedFsm<T> {
         }
     }
 
-    fn send_msg(&mut self, msg: T::Msg) {
+    fn send_msg(&mut self, msg: Msg) {
         self.sender.send(Req::FsmMsg(msg)).unwrap();
     }
 

@@ -9,7 +9,9 @@ pub use fsm::{
     Fsm,
     FsmContext,
     StateFn,
-    FsmHandler
+    FsmHandler,
+    Msg,
+    Envelope
 };
 
 pub use self::threaded_fsm::ThreadedFsm;
