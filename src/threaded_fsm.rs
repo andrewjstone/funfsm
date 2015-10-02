@@ -1,7 +1,8 @@
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::thread::JoinHandle;
 use std::thread;
-use fsm::{Msg, Fsm, FsmContext, FsmHandler};
+use fsm::{Fsm, FsmContext, FsmHandler};
+use channel::Msg;
 use local_fsm::LocalFsm;
 
 enum Req {

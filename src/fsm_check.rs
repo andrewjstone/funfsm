@@ -1,4 +1,5 @@
-use fsm::{Msg, Fsm, FsmContext, FsmHandler};
+use fsm::{Fsm, FsmContext, FsmHandler};
+use channel::Msg;
 use local_fsm::LocalFsm;
 use constraints::Constraints;
 

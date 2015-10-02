@@ -1,12 +1,19 @@
 use std::io::Write;
 use std::fs::{File, OpenOptions};
-use fsm::{Envelope, Msg, Fsm, FsmContext, FsmHandler, StateFn};
+use fsm::{Fsm, FsmContext, FsmHandler, StateFn};
+use channel::{Msg, Envelope};
 
 pub struct LocalFsm<T: FsmHandler> {
     state: StateFn<T>,
     ctx: T::Context,
     out: Vec<Envelope>,
     trace_file: Option<File>
+}
+
+impl<T: FsmHandler> LocalFsm<T> {
+    pub fn get_output_envelopes(&mut self) -> &mut Vec<Envelope> {
+        &mut self.out
+    }
 }
 
 impl<T: FsmHandler> Fsm<T> for LocalFsm<T> {

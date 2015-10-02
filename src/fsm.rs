@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use std::any::Any;
+use channel::{Msg, Envelope};
 
 #[macro_export]
 macro_rules! next {
@@ -7,11 +7,6 @@ macro_rules! next {
          StateFn(stringify!($x), $x)
      }
 }
-
-pub type Msg = Box<Any +'static + Send>;
-
-#[derive(Debug)]
-pub struct Envelope(pub String, pub Msg);
 
 pub trait Fsm<T: FsmHandler> {
     fn new() -> Self;
