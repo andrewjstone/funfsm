@@ -1,6 +1,6 @@
-use fsm::stage::Stage;
-use fsm::{Fsm, Msg, MsgSender, Envelope, Channel, Status, LocalFsm};
-use super::bowl_fsm::{BowlHandler, Context};
+use fsm::stage::{Stage, StageThreadModel};
+use fsm::{Fsm, Msg, MsgSender, Channel, Status, LocalFsm};
+use super::bowl_fsm::{BowlHandler};
 
 const QUEUE_SIZE: usize = 1024;
 
@@ -8,15 +8,17 @@ const QUEUE_SIZE: usize = 1024;
 pub struct BowlStage<T: Channel> {
     name: String,
     channel: T,
+    thread_model: StageThreadModel,
     fsm: LocalFsm<BowlHandler>
 }
 
 impl<T: Channel> Stage<T> for BowlStage<T> {
-    fn new(name: &str) -> BowlStage<T> {
+    fn new(name: &str, thread_model: StageThreadModel) -> BowlStage<T> {
         BowlStage {
             name: name.to_string(),
             channel: T::new(QUEUE_SIZE),
-            fsm: LocalFsm::new()
+            fsm: LocalFsm::new(),
+            thread_model: thread_model
         }
     }
 
@@ -28,9 +30,20 @@ impl<T: Channel> Stage<T> for BowlStage<T> {
         loop {
             let msg = self.channel.recv();
             self.fsm.send_msg(msg);
-            let mut envelopes = self.fsm.get_output_envelopes();
+            let envelopes = self.fsm.get_output_envelopes();
             println!("Envelopes = {:?}", envelopes);
             return;
         }
+    }
+
+    fn get_thread_model(&self) -> StageThreadModel {
+        return self.thread_model.clone();
+    }
+
+    fn handle_msg_internal(&mut self, msg: Msg) -> Status {
+        self.fsm.send_msg(msg);
+        let envelopes = self.fsm.get_output_envelopes();
+        println!("Envelopes = {:?}", envelopes);
+        return Status::Ok;
     }
 }
