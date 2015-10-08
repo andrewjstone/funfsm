@@ -1,3 +1,5 @@
+extern crate mio;
+
 #[macro_use]
 pub mod fsm;
 pub mod threaded_fsm;
@@ -5,8 +7,11 @@ pub mod local_fsm;
 pub mod constraints;
 pub mod fsm_check;
 pub mod channel;
-pub mod sync_channel;
+pub mod heuristic_channel;
 pub mod stage;
+//pub mod event_loop;
+//pub mod error;
+//pub mod frame;
 
 pub use fsm::{
     Fsm,

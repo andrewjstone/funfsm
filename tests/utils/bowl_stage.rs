@@ -1,25 +1,25 @@
 use fsm::stage::Stage;
-use fsm::{Fsm, Msg, MsgSender, Envelope, Channel, Status, LocalFsm};
-use super::bowl_fsm::{BowlHandler, Context};
-
-const QUEUE_SIZE: usize = 1024;
+use fsm::{Fsm, MsgSender, Channel, LocalFsm};
+use super::bowl_fsm::BowlHandler;
 
 /// A stage that uses and tests a cat_fsm
 pub struct BowlStage<T: Channel> {
-    name: String,
+    _name: String,
     channel: T,
     fsm: LocalFsm<BowlHandler>
 }
 
-impl<T: Channel> Stage<T> for BowlStage<T> {
-    fn new(name: &str) -> BowlStage<T> {
+impl<T: Channel> BowlStage<T> {
+    pub fn new(name: &str, channel: T) -> BowlStage<T> {
         BowlStage {
-            name: name.to_string(),
-            channel: T::new(QUEUE_SIZE),
+            _name: name.to_string(),
+            channel: channel,
             fsm: LocalFsm::new()
         }
     }
+}
 
+impl<T: Channel> Stage<T> for BowlStage<T> {
     fn get_sender(&self) -> Box<MsgSender> {
         self.channel.get_sender()
     }
@@ -28,7 +28,7 @@ impl<T: Channel> Stage<T> for BowlStage<T> {
         loop {
             let msg = self.channel.recv();
             self.fsm.send_msg(msg);
-            let mut envelopes = self.fsm.get_output_envelopes();
+            let envelopes = self.fsm.get_output_envelopes();
             println!("Envelopes = {:?}", envelopes);
             return;
         }
