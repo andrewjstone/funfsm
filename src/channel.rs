@@ -16,7 +16,7 @@ pub enum Status {
     Full
 }
 
-pub trait MsgSender {
+pub trait MsgSender: Send {
     // Never blocks
     fn send(&mut self, msg: Msg) -> Status;
     fn send_ctl(&mut self, msg: Msg);
