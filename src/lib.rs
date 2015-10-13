@@ -7,6 +7,8 @@ pub mod fsm_check;
 pub mod channel;
 pub mod sync_channel;
 pub mod stage;
+pub mod event;
+pub mod sstage;
 
 pub use fsm::{
     Fsm,
