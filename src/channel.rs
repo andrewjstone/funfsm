@@ -23,9 +23,9 @@ pub enum Status {
     Full
 }
 
-pub trait MsgSender {
-    /// send() is used for messages that can be dropped. It provides backpressure by returning
-    /// Status::Full to the caller if the message cannot be sent at this time.
+/// send() is used for messages that can be dropped. It provides backpressure by returning
+/// Status::Full to the caller if the message cannot be sent at this time.
+pub trait MsgSender: Send {
     fn send(&mut self, msg: Msg) -> Status;
 
     /// Some messages cannot be dropped. These are called 'control' messages. They should be sent by

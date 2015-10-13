@@ -9,9 +9,9 @@ pub mod fsm_check;
 pub mod channel;
 pub mod heuristic_channel;
 pub mod stage;
-//pub mod event_loop;
-//pub mod error;
-//pub mod frame;
+pub mod event_loop;
+pub mod error;
+pub mod frame;
 
 pub use fsm::{
     Fsm,
