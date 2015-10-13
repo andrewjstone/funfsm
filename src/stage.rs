@@ -6,8 +6,7 @@ pub enum StageThreadModel {
     CallerThread,
 }
 
-pub trait Stage<T: Channel> {
-    fn new(name: &str, thread_model: StageThreadModel) -> Self;
+pub trait Stage {
     fn get_sender(&self) -> Box<MsgSender>;
     fn get_thread_model(&self) -> StageThreadModel;
 

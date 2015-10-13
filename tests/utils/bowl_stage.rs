@@ -12,8 +12,8 @@ pub struct BowlStage<T: Channel> {
     fsm: LocalFsm<BowlHandler>
 }
 
-impl<T: Channel> Stage<T> for BowlStage<T> {
-    fn new(name: &str, thread_model: StageThreadModel) -> BowlStage<T> {
+impl<T: Channel> BowlStage<T> {
+    pub fn new(name: &str, thread_model: StageThreadModel) -> BowlStage<T> {
         BowlStage {
             name: name.to_string(),
             channel: T::new(QUEUE_SIZE),
@@ -21,6 +21,9 @@ impl<T: Channel> Stage<T> for BowlStage<T> {
             thread_model: thread_model
         }
     }
+}
+
+impl<T: Channel> Stage for BowlStage<T> {
 
     fn get_sender(&self) -> Box<MsgSender> {
         self.channel.get_sender()
