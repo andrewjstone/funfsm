@@ -1,7 +1,7 @@
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::thread::JoinHandle;
 use std::thread;
-use fsm::{Fsm, FsmContext, FsmHandler};
+use fsm::{Fsm, FsmHandler};
 use channel::Msg;
 use local_fsm::LocalFsm;
 
@@ -24,12 +24,12 @@ pub struct ThreadedFsm<T: 'static + FsmHandler> {
 
 /// Use the local fsm to share the logic
 impl<T: FsmHandler> Fsm<T> for ThreadedFsm<T> {
-    fn new() -> ThreadedFsm<T> {
+    fn new(ctx: T::Context) -> ThreadedFsm<T> {
         let (client_tx, fsm_rx) = channel();
         let (fsm_tx, client_rx) = channel();
 
         let handle = thread::spawn(move || {
-            let mut local_fsm = LocalFsm::<T>::new();
+            let mut local_fsm = LocalFsm::<T>::new(ctx);
             loop {
                 // Handle debug, config messages
                 match fsm_rx.recv() {

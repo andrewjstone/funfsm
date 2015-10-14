@@ -15,7 +15,6 @@ pub mod frame;
 
 pub use fsm::{
     Fsm,
-    FsmContext,
     StateFn,
     FsmHandler,
 };
