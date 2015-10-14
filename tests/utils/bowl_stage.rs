@@ -1,6 +1,6 @@
 use fsm::stage::Stage;
 use fsm::{Fsm, MsgSender, Channel, LocalFsm};
-use super::bowl_fsm::BowlHandler;
+use super::bowl_fsm::{BowlHandler, Context};
 
 /// A stage that uses and tests a cat_fsm
 pub struct BowlStage<T: Channel> {
@@ -14,7 +14,7 @@ impl<T: Channel> BowlStage<T> {
         BowlStage {
             _name: name.to_string(),
             channel: channel,
-            fsm: LocalFsm::new()
+            fsm: LocalFsm::new(Context::new())
         }
     }
 }

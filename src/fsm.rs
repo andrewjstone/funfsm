@@ -9,21 +9,16 @@ macro_rules! next {
 }
 
 pub trait Fsm<T: FsmHandler> {
-    fn new() -> Self;
+    fn new(T::Context) -> Self;
     fn get_state(&self) -> (&'static str, T::Context);
     fn send_msg(&mut self, msg: Msg);
     fn trace_on(&mut self, _path: &str);
     fn trace_off(&mut self);
 }
 
-pub trait FsmContext {
-    fn new() -> Self;
-}
-
 // A recursive tuple struct indicating the name of current state and the function pointer that
 // handles messages in that that state. Calling that function returns the next state in a
 // StateFn<T>.
-
 pub struct StateFn<T: FsmHandler>(
     pub &'static str,
     pub fn(&mut T::Context, Msg, &mut Vec<Envelope>) -> StateFn<T>
@@ -31,7 +26,7 @@ pub struct StateFn<T: FsmHandler>(
 
 pub trait FsmHandler: Sized {
     // The application state of the fsm
-    type Context: FsmContext + Send + Clone + Debug;
+    type Context: Send + Clone + Debug;
 
     fn initial_state() -> StateFn<Self>;
 }
