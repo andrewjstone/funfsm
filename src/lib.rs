@@ -15,9 +15,12 @@ pub mod frame;
 
 pub use fsm::{
     Fsm,
+    FsmType,
     StateFn,
     FsmHandler,
 };
+
+pub use error::StdError;
 
 pub use channel::{
     Channel,

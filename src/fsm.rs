@@ -8,8 +8,12 @@ macro_rules! next {
      }
 }
 
+pub enum FsmType {
+    Local,
+    Threaded
+}
+
 pub trait Fsm<T: FsmHandler> {
-    fn new(T::Context) -> Self;
     fn get_state(&self) -> (&'static str, T::Context);
     fn send_msg(&mut self, msg: Msg);
     fn trace_on(&mut self, _path: &str);

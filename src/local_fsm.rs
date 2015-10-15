@@ -11,13 +11,7 @@ pub struct LocalFsm<T: FsmHandler> {
 }
 
 impl<T: FsmHandler> LocalFsm<T> {
-    pub fn get_output_envelopes(&mut self) -> &mut Vec<Envelope> {
-        &mut self.out
-    }
-}
-
-impl<T: FsmHandler> Fsm<T> for LocalFsm<T> {
-    fn new(ctx: T::Context) -> LocalFsm<T> {
+    pub fn new(ctx: T::Context) -> LocalFsm<T> {
         LocalFsm {
             state: T::initial_state(),
             ctx: ctx,
@@ -26,6 +20,12 @@ impl<T: FsmHandler> Fsm<T> for LocalFsm<T> {
         }
     }
 
+    pub fn get_output_envelopes(&mut self) -> &mut Vec<Envelope> {
+        &mut self.out
+    }
+}
+
+impl<T: FsmHandler> Fsm<T> for LocalFsm<T> {
     fn get_state(&self) -> (&'static str, T::Context) {
         (self.state.0, self.ctx.clone())
     }
