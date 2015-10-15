@@ -3,14 +3,14 @@ use channel::{Msg, Channel, Status, MsgSender};
 
 #[derive(Clone)]
 pub struct HeuristicSender {
-    pred: fn() -> bool,
+    predicate: fn() -> bool,
     tx: Sender<Msg>
 }
 
 impl HeuristicSender {
     pub fn new(tx: Sender<Msg>, predicate: fn() -> bool) -> HeuristicSender {
         HeuristicSender {
-            pred: predicate,
+            predicate: predicate,
             tx: tx
         }
     }
@@ -18,10 +18,10 @@ impl HeuristicSender {
 
 impl MsgSender for HeuristicSender {
     fn send(&mut self, msg: Msg) -> Status {
-        // It's possible that pred is expensive. We should either ensure that this isn't the case or
+        // It's possible that predicate is expensive. We should either ensure that this isn't the case or
         // not call it on every send using some other heuristic such as number of or time between
         // calls.
-        let f = self.pred;
+        let f = self.predicate;
         if f() {
             self.tx.send(msg).unwrap();
             Status::Ok
