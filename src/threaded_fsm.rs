@@ -22,9 +22,8 @@ pub struct ThreadedFsm<T: 'static + FsmHandler> {
     pub thread: JoinHandle<()>
 }
 
-/// Use the local fsm to share the logic
-impl<T: FsmHandler> Fsm<T> for ThreadedFsm<T> {
-    fn new(ctx: T::Context) -> ThreadedFsm<T> {
+impl<T: FsmHandler> ThreadedFsm<T> {
+    pub fn new(ctx: T::Context) -> ThreadedFsm<T> {
         let (client_tx, fsm_rx) = channel();
         let (fsm_tx, client_rx) = channel();
 
@@ -60,7 +59,10 @@ impl<T: FsmHandler> Fsm<T> for ThreadedFsm<T> {
             thread: handle
         }
     }
+}
 
+/// Use the local fsm to share the logic
+impl<T: FsmHandler> Fsm<T> for ThreadedFsm<T> {
     fn get_state(&self) -> (&'static str, T::Context) {
         self.sender.send(Req::GetState).unwrap();
         match self.receiver.recv().unwrap() {
