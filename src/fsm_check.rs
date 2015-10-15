@@ -1,4 +1,4 @@
-use fsm::{Fsm, FsmContext, FsmHandler};
+use fsm::{Fsm, FsmHandler};
 use channel::Msg;
 use local_fsm::LocalFsm;
 use constraints::Constraints;
@@ -9,9 +9,9 @@ pub struct Checker<T: FsmHandler> {
 }
 
 impl<T: FsmHandler> Checker<T> {
-    pub fn new(constraints: Constraints<T::Context>) -> Checker<T> {
+    pub fn new(ctx: T::Context, constraints: Constraints<T::Context>) -> Checker<T> {
         Checker {
-            fsm: LocalFsm::<T>::new(),
+            fsm: LocalFsm::<T>::new(ctx),
             constraints: constraints
         }
     }

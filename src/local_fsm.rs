@@ -1,6 +1,6 @@
 use std::io::Write;
 use std::fs::{File, OpenOptions};
-use fsm::{Fsm, FsmContext, FsmHandler, StateFn};
+use fsm::{Fsm, FsmHandler, StateFn};
 use channel::{Msg, Envelope};
 
 pub struct LocalFsm<T: FsmHandler> {
@@ -11,21 +11,21 @@ pub struct LocalFsm<T: FsmHandler> {
 }
 
 impl<T: FsmHandler> LocalFsm<T> {
+    pub fn new(ctx: T::Context) -> LocalFsm<T> {
+        LocalFsm {
+            state: T::initial_state(),
+            ctx: ctx,
+            out: Vec::new(),
+            trace_file: None
+        }
+    }
+
     pub fn get_output_envelopes(&mut self) -> &mut Vec<Envelope> {
         &mut self.out
     }
 }
 
 impl<T: FsmHandler> Fsm<T> for LocalFsm<T> {
-    fn new() -> LocalFsm<T> {
-        LocalFsm {
-            state: T::initial_state(),
-            ctx: T::Context::new(),
-            out: Vec::new(),
-            trace_file: None
-        }
-    }
-
     fn get_state(&self) -> (&'static str, T::Context) {
         (self.state.0, self.ctx.clone())
     }
