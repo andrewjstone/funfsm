@@ -12,6 +12,8 @@ use utils::bowl_stage::BowlStage;
 use utils::bowl_fsm::CatMsg;
 use std::collections::hash_map::HashMap;
 use std::hash::Hash;
+use utils::vr_context::{VRContext, VRContextImp};
+use utils::vr_membership_events::{AddNodeEvent};
 
 #[test]
 fn basic_stage() {
@@ -23,21 +25,15 @@ fn basic_stage() {
                                                     StageThreadModel::DedicatedThread);
     let stage1str = "stage1".to_string();
     stage_map.insert(stage1str, Box::new(stage));
-    let shared_map = Arc::new(stage_map);
-    let handle = thread::spawn(move || {
-        match shared_map.get(&"stage1".to_string()) {
-            Some(stage) => {
-                    stage.start();
-                }
-            None => ()
-        }
-    });
-    match stage_map.get(&stage1str) {
+    match stage_map.get(&"stage1".to_string()) {
         Some(stage) => {
             let mut sender  = stage.get_sender();
             sender.send(Box::new(CatMsg::Meow) as Msg);
-            handle.join();
         }
         None => ()
     }
+
+    let vr_context  = VRContextImp::new();
+    let vr_add_node_event = AddNodeEvent::new(vr_context);
+
 }
