@@ -24,7 +24,6 @@ pub use error::StdError;
 
 pub use channel::{
     Channel,
-    Envelope,
     Msg,
     Status,
     MsgSender

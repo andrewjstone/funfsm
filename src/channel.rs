@@ -2,9 +2,6 @@ use std::any::Any;
 
 pub type Msg = Box<Any +'static + Send>;
 
-#[derive(Debug)]
-pub struct Envelope(pub String, pub Msg);
-
 pub trait Channel {
     fn get_sender(&self) -> Box<MsgSender>;
     fn recv(&self) -> Msg;

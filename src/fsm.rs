@@ -1,5 +1,4 @@
 use std::fmt::Debug;
-use channel::Envelope;
 
 #[macro_export]
 macro_rules! next {
@@ -8,6 +7,7 @@ macro_rules! next {
      }
 }
 
+#[derive(Clone, Debug)]
 pub enum FsmType {
     Local,
     Threaded
@@ -25,7 +25,7 @@ pub trait Fsm<T: FsmHandler> {
 // StateFn<T>.
 pub struct StateFn<T: FsmHandler>(
     pub &'static str,
-    pub fn(&mut T::Context, T::Msg, &mut Vec<Envelope>) -> StateFn<T>
+    pub fn(&mut T::Context, T::Msg) -> StateFn<T>
 );
 
 pub trait FsmHandler: Sized {

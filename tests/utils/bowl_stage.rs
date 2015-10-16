@@ -34,8 +34,6 @@ impl<T: Channel> Stage<T> for BowlStage<T> {
             } else {
                 println!("Message received by bowl_stage is of incorrect type");
             }
-            let envelopes = self.fsm.get_output_envelopes();
-            println!("Envelopes = {:?}", envelopes);
             return;
         }
     }

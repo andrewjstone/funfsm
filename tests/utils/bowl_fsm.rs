@@ -2,7 +2,7 @@
 //! the cat food bowl. Our cat is very whiny and will always be fed when her bowl is empty and she
 //! meows. If there is already food in the bowl, she will have to eat it before we give her more.
 
-use fsm::{Msg, ThreadedFsm, LocalFsm, Fsm, StateFn, FsmHandler, Envelope};
+use fsm::{Msg, ThreadedFsm, LocalFsm, Fsm, StateFn, FsmHandler};
 use fsm::constraints::Constraints;
 use fsm::constraints;
 use fsm::fsm_check::Checker;
@@ -62,7 +62,7 @@ impl FsmHandler for BowlHandler {
     }
 }
 
-pub fn empty(ctx: &mut Context, msg: BowlMsg, out: &mut Vec<Envelope>) -> StateFn<BowlHandler> {
+pub fn empty(ctx: &mut Context, msg: BowlMsg) -> StateFn<BowlHandler> {
 
     if let BowlMsg::CatMsg(CatMsg::Meow) = msg {
         if ctx.reserves > 0 {
@@ -70,8 +70,7 @@ pub fn empty(ctx: &mut Context, msg: BowlMsg, out: &mut Vec<Envelope>) -> StateF
             ctx.contents = 100;
             ctx.reserves -= 1;
             if ctx.reserves <= REFILL_THRESHOLD {
-                let refill = Box::new(StoreReq::Buy(MAX_RESERVES - ctx.reserves)) as Msg;
-                out.push(Envelope("cat_food_store".to_string(), refill));
+                //let refill = Box::new(StoreReq::Buy(MAX_RESERVES - ctx.reserves)) as Msg;
             }
             return next!(full)
         } else {
@@ -88,7 +87,7 @@ pub fn empty(ctx: &mut Context, msg: BowlMsg, out: &mut Vec<Envelope>) -> StateF
     next!(empty)
 }
 
-pub fn full(ctx: &mut Context, msg: BowlMsg, _out: &mut Vec<Envelope>) -> StateFn<BowlHandler> {
+pub fn full(ctx: &mut Context, msg: BowlMsg) -> StateFn<BowlHandler> {
     if let BowlMsg::CatMsg(CatMsg::Eat(pct)) = msg {
         if pct >= ctx.contents {
             ctx.contents = 0;
