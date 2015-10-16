@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use channel::{Msg, Envelope};
+use channel::Envelope;
 
 #[macro_export]
 macro_rules! next {
@@ -15,7 +15,7 @@ pub enum FsmType {
 
 pub trait Fsm<T: FsmHandler> {
     fn get_state(&self) -> (&'static str, T::Context);
-    fn send_msg(&mut self, msg: Msg);
+    fn send_msg(&mut self, msg: T::Msg);
     fn trace_on(&mut self, _path: &str);
     fn trace_off(&mut self);
 }
@@ -25,12 +25,13 @@ pub trait Fsm<T: FsmHandler> {
 // StateFn<T>.
 pub struct StateFn<T: FsmHandler>(
     pub &'static str,
-    pub fn(&mut T::Context, Msg, &mut Vec<Envelope>) -> StateFn<T>
+    pub fn(&mut T::Context, T::Msg, &mut Vec<Envelope>) -> StateFn<T>
 );
 
 pub trait FsmHandler: Sized {
     // The application state of the fsm
     type Context: Send + Clone + Debug;
+    type Msg: Send + Clone + Debug;
 
     fn initial_state() -> StateFn<Self>;
 }

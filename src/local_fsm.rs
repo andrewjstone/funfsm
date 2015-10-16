@@ -1,7 +1,7 @@
 use std::io::Write;
 use std::fs::{File, OpenOptions};
 use fsm::{Fsm, FsmHandler, StateFn};
-use channel::{Msg, Envelope};
+use channel::Envelope;
 
 pub struct LocalFsm<T: FsmHandler> {
     state: StateFn<T>,
@@ -30,7 +30,7 @@ impl<T: FsmHandler> Fsm<T> for LocalFsm<T> {
         (self.state.0, self.ctx.clone())
     }
 
-    fn send_msg(&mut self, msg: Msg) {
+    fn send_msg(&mut self, msg: T::Msg) {
         if let Some(ref mut file) = self.trace_file {
             let StateFn(name, f) = self.state;
             // TODO: Do we want to call unwrap here?
