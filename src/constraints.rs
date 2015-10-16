@@ -1,16 +1,15 @@
-use fsm::{FsmContext};
 use std::collections::HashMap;
 
 pub type Pred<T> = Box<Fn(&T) -> bool>;
 
-pub struct Constraints<T: FsmContext> {
+pub struct Constraints<T> {
     pub preconditions: HashMap<&'static str, Vec<(Pred<T>, String)>>,
     pub postconditions: HashMap<&'static str, Vec<(Pred<T>, String)>>,
     pub invariants: Vec<(Pred<T>, String)>,
     pub transitions: HashMap<(&'static str, &'static str), Vec<(Pred<T>, String)>>
 }
 
-impl<T: FsmContext> Constraints<T> {
+impl<T> Constraints<T> {
     pub fn new() -> Constraints<T> {
         Constraints {
             preconditions: HashMap::new(),
