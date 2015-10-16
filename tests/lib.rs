@@ -8,7 +8,7 @@ use fsm::stage::Stage;
 use fsm::Msg;
 use fsm::heuristic_channel::HeuristicChannel;
 use utils::bowl_stage::BowlStage;
-use utils::bowl_fsm::CatMsg;
+use utils::bowl_fsm::{BowlMsg, CatMsg};
 
 fn always_true() -> bool {
     true
@@ -23,6 +23,6 @@ fn basic_stage() {
        stage.start()
     });
 
-    tx.send(Box::new(CatMsg::Meow) as Msg);
+    tx.send(Box::new(BowlMsg::CatMsg(CatMsg::Meow)) as Msg);
     handle.join().unwrap();
 }
