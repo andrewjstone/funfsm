@@ -1,12 +1,10 @@
 use std::io::Write;
 use std::fs::{File, OpenOptions};
 use fsm::{Fsm, FsmHandler, StateFn};
-use channel::Envelope;
 
 pub struct LocalFsm<T: FsmHandler> {
     state: StateFn<T>,
     ctx: T::Context,
-    out: Vec<Envelope>,
     trace_file: Option<File>
 }
 
@@ -15,13 +13,8 @@ impl<T: FsmHandler> LocalFsm<T> {
         LocalFsm {
             state: T::initial_state(),
             ctx: ctx,
-            out: Vec::new(),
             trace_file: None
         }
-    }
-
-    pub fn get_output_envelopes(&mut self) -> &mut Vec<Envelope> {
-        &mut self.out
     }
 }
 
@@ -35,11 +28,11 @@ impl<T: FsmHandler> Fsm<T> for LocalFsm<T> {
             let StateFn(name, f) = self.state;
             // TODO: Do we want to call unwrap here?
             write!(file, "C: {} {:?}\nM: {:?}\n", name, &self.ctx, &msg).unwrap();
-            self.state = f(&mut self.ctx, msg, &mut self.out);
+            self.state = f(&mut self.ctx, msg);
             write!(file, "N: {} {:?}\n", self.state.0, &self.ctx).unwrap();
         } else {
             let StateFn(_name, f) = self.state;
-            self.state = f(&mut self.ctx, msg, &mut self.out);
+            self.state = f(&mut self.ctx, msg);
         }
     }
 
