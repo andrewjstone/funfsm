@@ -1,16 +1,15 @@
 use fsm::{Fsm, FsmHandler};
-use local_fsm::LocalFsm;
 use constraints::Constraints;
 
 pub struct Checker<T: FsmHandler> {
-    fsm: LocalFsm<T>,
+    fsm: Fsm<T>,
     constraints: Constraints<T::Context>
 }
 
 impl<T: FsmHandler> Checker<T> {
     pub fn new(ctx: T::Context, constraints: Constraints<T::Context>) -> Checker<T> {
         Checker {
-            fsm: LocalFsm::<T>::new(ctx),
+            fsm: Fsm::<T>::new(ctx),
             constraints: constraints
         }
     }

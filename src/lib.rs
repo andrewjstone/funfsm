@@ -2,8 +2,6 @@ extern crate mio;
 
 #[macro_use]
 pub mod fsm;
-pub mod threaded_fsm;
-pub mod local_fsm;
 pub mod constraints;
 pub mod fsm_check;
 pub mod channel;
@@ -15,7 +13,6 @@ pub mod frame;
 
 pub use fsm::{
     Fsm,
-    FsmType,
     StateFn,
     FsmHandler,
 };
@@ -28,6 +25,3 @@ pub use channel::{
     Status,
     MsgSender
 };
-
-pub use self::threaded_fsm::ThreadedFsm;
-pub use self::local_fsm::LocalFsm;

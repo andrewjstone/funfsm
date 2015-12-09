@@ -2,7 +2,7 @@
 //! the cat food bowl. Our cat is very whiny and will always be fed when her bowl is empty and she
 //! meows. If there is already food in the bowl, she will have to eat it before we give her more.
 
-use fsm::{Msg, ThreadedFsm, LocalFsm, Fsm, StateFn, FsmHandler};
+use fsm::{Msg, Fsm, StateFn, FsmHandler};
 use fsm::constraints::Constraints;
 use fsm::constraints;
 use fsm::fsm_check::Checker;
@@ -101,8 +101,9 @@ pub fn full(ctx: &mut Context, msg: BowlMsg) -> StateFn<BowlHandler> {
     }
 }
 
-fn assert_state_transitions<T: Fsm<BowlHandler>>(mut fsm: T) {
-    fsm.trace_on("/tmp/fsm_trace.txt");
+#[test]
+fn test_state_transitions() {
+    let mut fsm = Fsm::<BowlHandler>::new(Context::new());
     let (name, ctx) = fsm.get_state();
     assert_eq!(name, "empty");
     assert_eq!(ctx.contents, 0);
@@ -122,18 +123,6 @@ fn assert_state_transitions<T: Fsm<BowlHandler>>(mut fsm: T) {
     let (name, ctx) = fsm.get_state();
     assert_eq!(name, "empty");
     assert_eq!(ctx.contents, 0);
-}
-
-#[test]
-fn test_threaded() {
-    let fsm = ThreadedFsm::new(Context::new());
-    assert_state_transitions(fsm);
-}
-
-#[test]
-fn test_local() {
-    let fsm = LocalFsm::new(Context::new());
-    assert_state_transitions(fsm);
 }
 
 #[test]
