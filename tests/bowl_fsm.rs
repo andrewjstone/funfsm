@@ -2,7 +2,10 @@
 //! the cat food bowl. Our cat is very whiny and will always be fed when her bowl is empty and she
 //! meows. If there is already food in the bowl, she will have to eat it before we give her more.
 
-use fsm::{Msg, Fsm, StateFn, FsmHandler};
+#[macro_use]
+extern crate fsm;
+
+use fsm::{Fsm, StateFn, FsmHandler};
 use fsm::constraints::Constraints;
 use fsm::constraints;
 use fsm::fsm_check::Checker;
@@ -70,7 +73,7 @@ pub fn empty(ctx: &mut Context, msg: BowlMsg) -> StateFn<BowlHandler> {
             ctx.contents = 100;
             ctx.reserves -= 1;
             if ctx.reserves <= REFILL_THRESHOLD {
-                //let refill = Box::new(StoreReq::Buy(MAX_RESERVES - ctx.reserves)) as Msg;
+                // We'd send a refill request here in a real system
             }
             return next!(full)
         } else {
