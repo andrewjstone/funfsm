@@ -1,23 +1,21 @@
-use fsm::{Fsm, FsmContext, FsmHandler};
-use channel::Msg;
-use local_fsm::LocalFsm;
+use fsm::{Fsm, FsmHandler};
 use constraints::Constraints;
 
 pub struct Checker<T: FsmHandler> {
-    fsm: LocalFsm<T>,
+    fsm: Fsm<T>,
     constraints: Constraints<T::Context>
 }
 
 impl<T: FsmHandler> Checker<T> {
-    pub fn new(constraints: Constraints<T::Context>) -> Checker<T> {
+    pub fn new(ctx: T::Context, constraints: Constraints<T::Context>) -> Checker<T> {
         Checker {
-            fsm: LocalFsm::<T>::new(),
+            fsm: Fsm::<T>::new(ctx),
             constraints: constraints
         }
     }
 
     // TODO: Use quickcheck and a generator for messages here
-    pub fn check(&mut self, msgs: Vec<Msg>) -> Result<(), String> {
+    pub fn check(&mut self, msgs: Vec<T::Msg>) -> Result<(), String> {
         for msg in msgs {
             let (from, ctx) = self.fsm.get_state();
             try!(self.constraints.check_preconditions(from, &ctx));

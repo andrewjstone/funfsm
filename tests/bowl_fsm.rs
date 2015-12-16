@@ -2,7 +2,10 @@
 //! the cat food bowl. Our cat is very whiny and will always be fed when her bowl is empty and she
 //! meows. If there is already food in the bowl, she will have to eat it before we give her more.
 
-use fsm::{Msg, ThreadedFsm, LocalFsm, Fsm, FsmContext, StateFn, FsmHandler, Envelope};
+#[macro_use]
+extern crate fsm;
+
+use fsm::{Fsm, StateFn, FsmHandler};
 use fsm::constraints::Constraints;
 use fsm::constraints;
 use fsm::fsm_check::Checker;
@@ -18,8 +21,8 @@ pub struct Context {
     pub reserves: u8, // The amount of bowls of food left in the bag
 }
 
-impl FsmContext for Context {
-    fn new() -> Context {
+impl Context {
+    pub fn new() -> Context {
         Context {
             contents: 0, // The bowl starts off empty
             reserves: MAX_RESERVES,
@@ -43,27 +46,34 @@ pub enum StoreRpy {
     Bowls(u8)
 }
 
+#[derive(Debug, Clone)]
+pub enum BowlMsg {
+    CatMsg(CatMsg),
+    StoreReq(StoreReq),
+    StoreRpy(StoreRpy)
+}
+
 #[derive(Debug)]
 pub struct BowlHandler;
 
 impl FsmHandler for BowlHandler {
     type Context = Context;
+    type Msg = BowlMsg;
 
     fn initial_state() -> StateFn<BowlHandler> {
         next!(empty)
     }
 }
 
-pub fn empty(ctx: &mut Context, msg: Msg, out: &mut Vec<Envelope>) -> StateFn<BowlHandler> {
+pub fn empty(ctx: &mut Context, msg: BowlMsg) -> StateFn<BowlHandler> {
 
-    if let Some(&CatMsg::Meow) = msg.downcast_ref::<CatMsg>() {
+    if let BowlMsg::CatMsg(CatMsg::Meow) = msg {
         if ctx.reserves > 0 {
             // Fill the bowl
             ctx.contents = 100;
             ctx.reserves -= 1;
             if ctx.reserves <= REFILL_THRESHOLD {
-                let refill = Box::new(StoreReq::Buy(MAX_RESERVES - ctx.reserves)) as Msg;
-                out.push(Envelope("cat_food_store".to_string(), refill));
+                // We'd send a refill request here in a real system
             }
             return next!(full)
         } else {
@@ -71,7 +81,7 @@ pub fn empty(ctx: &mut Context, msg: Msg, out: &mut Vec<Envelope>) -> StateFn<Bo
         }
     }
 
-    if let Some(&StoreRpy::Bowls(num)) = msg.downcast_ref::<StoreRpy>() {
+    if let BowlMsg::StoreRpy(StoreRpy::Bowls(num)) = msg {
         ctx.reserves += num-1;
         ctx.contents = 100;
         return next!(full)
@@ -80,8 +90,8 @@ pub fn empty(ctx: &mut Context, msg: Msg, out: &mut Vec<Envelope>) -> StateFn<Bo
     next!(empty)
 }
 
-pub fn full(ctx: &mut Context, msg: Msg, _out: &mut Vec<Envelope>) -> StateFn<BowlHandler> {
-    if let Some(&CatMsg::Eat(pct)) = msg.downcast_ref::<CatMsg>() {
+pub fn full(ctx: &mut Context, msg: BowlMsg) -> StateFn<BowlHandler> {
+    if let BowlMsg::CatMsg(CatMsg::Eat(pct)) = msg {
         if pct >= ctx.contents {
             ctx.contents = 0;
             next!(empty)
@@ -94,49 +104,42 @@ pub fn full(ctx: &mut Context, msg: Msg, _out: &mut Vec<Envelope>) -> StateFn<Bo
     }
 }
 
-fn assert_state_transitions<T: Fsm<BowlHandler>>(mut fsm: T) {
-    fsm.trace_on("/tmp/fsm_trace.txt");
+#[test]
+fn test_state_transitions() {
+    let mut fsm = Fsm::<BowlHandler>::new(Context::new());
     let (name, ctx) = fsm.get_state();
     assert_eq!(name, "empty");
     assert_eq!(ctx.contents, 0);
-    fsm.send_msg(Box::new(CatMsg::Meow) as Msg);
+    fsm.send_msg(BowlMsg::CatMsg(CatMsg::Meow));
     let (name, ctx) = fsm.get_state();
     assert_eq!(name, "full");
     assert_eq!(ctx.contents, 100);
-    fsm.send_msg(Box::new(CatMsg::Eat(30)) as Msg);
+    fsm.send_msg(BowlMsg::CatMsg(CatMsg::Eat(30)));
     let (name, ctx) = fsm.get_state();
     assert_eq!(name, "full");
     assert_eq!(ctx.contents, 70);
-    fsm.send_msg(Box::new(CatMsg::Meow) as Msg);
+    fsm.send_msg(BowlMsg::CatMsg(CatMsg::Meow));
     let (name, ctx) = fsm.get_state();
     assert_eq!(name, "full");
     assert_eq!(ctx.contents, 70);
-    fsm.send_msg(Box::new(CatMsg::Eat(75)) as Msg);
+    fsm.send_msg(BowlMsg::CatMsg(CatMsg::Eat(75)));
     let (name, ctx) = fsm.get_state();
     assert_eq!(name, "empty");
     assert_eq!(ctx.contents, 0);
-}
-
-#[test]
-fn test_threaded() {
-    let fsm = ThreadedFsm::new();
-    assert_state_transitions(fsm);
-}
-
-#[test]
-fn test_local() {
-    let fsm = LocalFsm::new();
-    assert_state_transitions(fsm);
 }
 
 #[test]
 fn test_check() {
-    let v = vec![CatMsg::Meow, CatMsg::Eat(30), CatMsg::Eat(70), CatMsg::Meow, CatMsg::Eat(50), CatMsg::Meow];
-    let msgs = v.iter().cloned().map(|msg| Box::new(msg) as Msg).collect();
+    let msgs = vec![BowlMsg::CatMsg(CatMsg::Meow),
+                 BowlMsg::CatMsg(CatMsg::Eat(30)),
+                 BowlMsg::CatMsg(CatMsg::Eat(70)),
+                 BowlMsg::CatMsg(CatMsg::Meow),
+                 BowlMsg::CatMsg(CatMsg::Eat(50)),
+                 BowlMsg::CatMsg(CatMsg::Meow)];
     check_constraints(msgs);
 }
 
-fn check_constraints(msgs: Vec<Msg>) {
+fn check_constraints(msgs: Vec<BowlMsg>) {
     let mut c = Constraints::new();
     precondition!(c, "empty", |ctx: &Context| ctx.contents == 0);
     precondition!(c, "full", |ctx: &Context| ctx.contents > 0 && ctx.contents <= 100);
@@ -144,6 +147,6 @@ fn check_constraints(msgs: Vec<Msg>) {
     invariant!(c, |ctx: &Context| ctx.contents <= 100);
     transition!(c, "empty", "full", |ctx: &Context| ctx.contents == 100);
     transition!(c, "full", "empty", |ctx: &Context| ctx.contents == 0);
-    let mut checker = Checker::<BowlHandler>::new(c);
+    let mut checker = Checker::<BowlHandler>::new(Context::new(), c);
     assert_eq!(Ok(()), checker.check(msgs));
 }
