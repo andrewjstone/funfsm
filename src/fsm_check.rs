@@ -1,15 +1,15 @@
-use fsm::{Fsm, FsmHandler};
+use fsm::{Fsm, StateFn, FsmTypes};
 use constraints::Constraints;
 
-pub struct Checker<T: FsmHandler> {
+pub struct Checker<T: FsmTypes> {
     fsm: Fsm<T>,
     constraints: Constraints<T::Context>
 }
 
-impl<T: FsmHandler> Checker<T> {
-    pub fn new(ctx: T::Context, constraints: Constraints<T::Context>) -> Checker<T> {
+impl<T: FsmTypes> Checker<T> {
+    pub fn new(ctx: T::Context, state: StateFn<T>, constraints: Constraints<T::Context>) -> Checker<T> {
         Checker {
-            fsm: Fsm::<T>::new(ctx),
+            fsm: Fsm::<T>::new(ctx, state),
             constraints: constraints
         }
     }
@@ -19,7 +19,7 @@ impl<T: FsmHandler> Checker<T> {
         for msg in msgs {
             let (from, ctx) = self.fsm.get_state();
             try!(self.constraints.check_preconditions(from, &ctx));
-            self.fsm.send_msg(msg);
+            self.fsm.send(msg);
             let (to, ctx) = self.fsm.get_state();
             try!(self.constraints.check_postconditions(from, &ctx));
             try!(self.constraints.check_invariants(&ctx));

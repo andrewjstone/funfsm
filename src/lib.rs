@@ -6,5 +6,5 @@ pub mod fsm_check;
 pub use fsm::{
     Fsm,
     StateFn,
-    FsmHandler,
+    FsmTypes
 };
