@@ -5,7 +5,7 @@
 #[macro_use]
 extern crate fsm;
 
-use fsm::{Fsm, StateFn, FsmHandler};
+use fsm::{Fsm, StateFn, FsmTypes};
 use fsm::constraints::Constraints;
 use fsm::constraints;
 use fsm::fsm_check::Checker;
@@ -49,23 +49,19 @@ pub enum StoreRpy {
 #[derive(Debug, Clone)]
 pub enum BowlMsg {
     CatMsg(CatMsg),
-    StoreReq(StoreReq),
     StoreRpy(StoreRpy)
 }
 
 #[derive(Debug)]
-pub struct BowlHandler;
+pub struct BowlTypes;
 
-impl FsmHandler for BowlHandler {
+impl FsmTypes for BowlTypes {
     type Context = Context;
     type Msg = BowlMsg;
-
-    fn initial_state() -> StateFn<BowlHandler> {
-        next!(empty)
-    }
+    type Output = StoreReq;
 }
 
-pub fn empty(ctx: &mut Context, msg: BowlMsg) -> StateFn<BowlHandler> {
+pub fn empty(ctx: &mut Context, msg: BowlMsg) -> (StateFn<BowlTypes>, Vec<StoreReq>) {
 
     if let BowlMsg::CatMsg(CatMsg::Meow) = msg {
         if ctx.reserves > 0 {
@@ -73,56 +69,60 @@ pub fn empty(ctx: &mut Context, msg: BowlMsg) -> StateFn<BowlHandler> {
             ctx.contents = 100;
             ctx.reserves -= 1;
             if ctx.reserves <= REFILL_THRESHOLD {
-                // We'd send a refill request here in a real system
+                let output = vec![StoreReq::Buy(10)];
+                return next!(full, output);
             }
-            return next!(full)
+            return next!(full);
         } else {
-            return next!(empty)
+            return next!(empty);
         }
     }
 
     if let BowlMsg::StoreRpy(StoreRpy::Bowls(num)) = msg {
         ctx.reserves += num-1;
         ctx.contents = 100;
-        return next!(full)
+        return next!(full);
     }
 
     next!(empty)
 }
 
-pub fn full(ctx: &mut Context, msg: BowlMsg) -> StateFn<BowlHandler> {
+pub fn full(ctx: &mut Context, msg: BowlMsg) -> (StateFn<BowlTypes>, Vec<StoreReq>) {
     if let BowlMsg::CatMsg(CatMsg::Eat(pct)) = msg {
         if pct >= ctx.contents {
             ctx.contents = 0;
-            next!(empty)
+            return next!(empty)
         } else {
             ctx.contents -= pct;
-            next!(full)
+            return next!(full)
         }
-    } else {
-        next!(full)
     }
+
+    if let BowlMsg::StoreRpy(StoreRpy::Bowls(num)) = msg {
+        ctx.reserves += num;
+    }
+    next!(full)
 }
 
 #[test]
 fn test_state_transitions() {
-    let mut fsm = Fsm::<BowlHandler>::new(Context::new());
+    let mut fsm = Fsm::<BowlTypes>::new(Context::new(), state_fn!(empty));
     let (name, ctx) = fsm.get_state();
     assert_eq!(name, "empty");
     assert_eq!(ctx.contents, 0);
-    fsm.send_msg(BowlMsg::CatMsg(CatMsg::Meow));
+    fsm.send(BowlMsg::CatMsg(CatMsg::Meow));
     let (name, ctx) = fsm.get_state();
     assert_eq!(name, "full");
     assert_eq!(ctx.contents, 100);
-    fsm.send_msg(BowlMsg::CatMsg(CatMsg::Eat(30)));
+    fsm.send(BowlMsg::CatMsg(CatMsg::Eat(30)));
     let (name, ctx) = fsm.get_state();
     assert_eq!(name, "full");
     assert_eq!(ctx.contents, 70);
-    fsm.send_msg(BowlMsg::CatMsg(CatMsg::Meow));
+    fsm.send(BowlMsg::CatMsg(CatMsg::Meow));
     let (name, ctx) = fsm.get_state();
     assert_eq!(name, "full");
     assert_eq!(ctx.contents, 70);
-    fsm.send_msg(BowlMsg::CatMsg(CatMsg::Eat(75)));
+    fsm.send(BowlMsg::CatMsg(CatMsg::Eat(75)));
     let (name, ctx) = fsm.get_state();
     assert_eq!(name, "empty");
     assert_eq!(ctx.contents, 0);
@@ -147,6 +147,6 @@ fn check_constraints(msgs: Vec<BowlMsg>) {
     invariant!(c, |ctx: &Context| ctx.contents <= 100);
     transition!(c, "empty", "full", |ctx: &Context| ctx.contents == 100);
     transition!(c, "full", "empty", |ctx: &Context| ctx.contents == 0);
-    let mut checker = Checker::<BowlHandler>::new(Context::new(), c);
+    let mut checker = Checker::<BowlTypes>::new(Context::new(), state_fn!(empty), c);
     assert_eq!(Ok(()), checker.check(msgs));
 }

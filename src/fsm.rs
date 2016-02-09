@@ -2,38 +2,55 @@ use std::fmt::Debug;
 
 #[macro_export]
 macro_rules! next {
-     ($x:ident) => {
-         StateFn(stringify!($x), $x)
+     ($state:ident) => {
+         (StateFn(stringify!($state), $state), Vec::new())
+     };
+     ($state:ident, $output:expr) => {
+         (StateFn(stringify!($state), $state), $output)
+     };
+}
+
+#[macro_export]
+macro_rules! state_fn {
+     ($state:ident) => {
+         StateFn(stringify!($state), $state)
      }
 }
 
+pub trait FsmTypes: Sized {
+    // The application state of the fsm
+    type Context: Send + Clone + Debug;
+    type Msg: Send + Clone + Debug;
+    type Output: Send + Clone + Debug;
+}
+
 // A recursive tuple struct indicating the name of current state and the function pointer that
-// handles messages in that that state. Calling that function returns the next state in a
-// StateFn<T>.
-pub struct StateFn<T: FsmHandler>(
+// handles messages in that that state. Calling that function returns a pair containing the next
+// state and any output.
+pub struct StateFn<T: FsmTypes>(
     pub &'static str,
-    pub fn(&mut T::Context, T::Msg) -> StateFn<T>
+    pub fn(&mut T::Context, T::Msg) -> (StateFn<T>, Vec<T::Output>)
 );
 
 // Function pointers aren't `Clone` due to this [bug](https://github.com/rust-lang/rust/issues/24000)
 // Since we can't derive clone, we just implement it manually, since function pointers are `Copy`
-impl<T: FsmHandler> Clone for StateFn<T> {
+impl<T: FsmTypes> Clone for StateFn<T> {
     fn clone(&self) -> StateFn<T> {
         StateFn(self.0, self.1)
     }
 }
 
 #[derive(Clone)]
-pub struct Fsm<T: FsmHandler> {
+pub struct Fsm<T: FsmTypes> {
     pub state: StateFn<T>,
     pub ctx: T::Context
 }
 
-impl<T: FsmHandler> Fsm<T> {
-    pub fn new(ctx: T::Context) -> Fsm<T> {
+impl<T: FsmTypes> Fsm<T> {
+    pub fn new(ctx: T::Context, state: StateFn<T>) -> Fsm<T> {
         Fsm {
-            state: T::initial_state(),
-            ctx: ctx,
+            state: state,
+            ctx: ctx
         }
     }
 
@@ -41,17 +58,10 @@ impl<T: FsmHandler> Fsm<T> {
         (self.state.0, self.ctx.clone())
     }
 
-    pub fn send_msg(&mut self, msg: T::Msg) {
+    pub fn send(&mut self, msg: T::Msg) -> Vec<T::Output> {
         let StateFn(_name, f) = self.state;
-        self.state = f(&mut self.ctx, msg);
+        let (new_state, output) = f(&mut self.ctx, msg);
+        self.state = new_state;
+        output
     }
 }
-
-pub trait FsmHandler: Sized {
-    // The application state of the fsm
-    type Context: Send + Clone + Debug;
-    type Msg: Send + Clone + Debug;
-
-    fn initial_state() -> StateFn<Self>;
-}
-
