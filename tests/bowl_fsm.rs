@@ -105,27 +105,38 @@ pub fn full(ctx: &mut Context, msg: BowlMsg) -> (StateFn<BowlTypes>, Vec<StoreRe
 }
 
 #[test]
+/// Note the blocks are to reduce the borrow window for &ctx returned from fsm.get_state().
 fn test_state_transitions() {
     let mut fsm = Fsm::<BowlTypes>::new(Context::new(), state_fn!(empty));
-    let (name, ctx) = fsm.get_state();
-    assert_eq!(name, "empty");
-    assert_eq!(ctx.contents, 0);
+    {
+        let (name, ctx) = fsm.get_state();
+        assert_eq!(name, "empty");
+        assert_eq!(ctx.contents, 0);
+    }
     fsm.send(BowlMsg::CatMsg(CatMsg::Meow));
-    let (name, ctx) = fsm.get_state();
-    assert_eq!(name, "full");
-    assert_eq!(ctx.contents, 100);
+    {
+        let (name, ctx) = fsm.get_state();
+        assert_eq!(name, "full");
+        assert_eq!(ctx.contents, 100);
+    }
     fsm.send(BowlMsg::CatMsg(CatMsg::Eat(30)));
-    let (name, ctx) = fsm.get_state();
-    assert_eq!(name, "full");
-    assert_eq!(ctx.contents, 70);
+    {
+        let (name, ctx) = fsm.get_state();
+        assert_eq!(name, "full");
+        assert_eq!(ctx.contents, 70);
+    }
     fsm.send(BowlMsg::CatMsg(CatMsg::Meow));
-    let (name, ctx) = fsm.get_state();
-    assert_eq!(name, "full");
-    assert_eq!(ctx.contents, 70);
+    {
+        let (name, ctx) = fsm.get_state();
+        assert_eq!(name, "full");
+        assert_eq!(ctx.contents, 70);
+    }
     fsm.send(BowlMsg::CatMsg(CatMsg::Eat(75)));
-    let (name, ctx) = fsm.get_state();
-    assert_eq!(name, "empty");
-    assert_eq!(ctx.contents, 0);
+    {
+        let (name, ctx) = fsm.get_state();
+        assert_eq!(name, "empty");
+        assert_eq!(ctx.contents, 0);
+    }
 }
 
 #[test]
