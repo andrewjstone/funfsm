@@ -14,6 +14,9 @@ macro_rules! next {
 macro_rules! state_fn {
      ($state:ident) => {
          StateFn(stringify!($state), $state)
+     };
+     ($m:ident::$state:ident) => {
+         StateFn(stringify!($state), $m::$state)
      }
 }
 
