@@ -14,6 +14,9 @@ macro_rules! next {
 macro_rules! state_fn {
      ($state:ident) => {
          StateFn(stringify!($state), $state)
+     };
+     ($m:ident::$state:ident) => {
+         StateFn(stringify!($state), $m::$state)
      }
 }
 
@@ -54,8 +57,8 @@ impl<T: FsmTypes> Fsm<T> {
         }
     }
 
-    pub fn get_state(&self) -> (&'static str, T::Context) {
-        (self.state.0, self.ctx.clone())
+    pub fn get_state(&self) -> (&'static str, &T::Context) {
+        (self.state.0, &self.ctx)
     }
 
     pub fn send(&mut self, msg: T::Msg) -> Vec<T::Output> {
