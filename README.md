@@ -1,5 +1,5 @@
 [![Build
-Status](https://travis-ci.org/andrewjstone/fsm.svg?branch=master)](https://travis-ci.org/andrewjstone/fsm)
+Status](https://travis-ci.org/andrewjstone/funfsm.svg?branch=master)](https://travis-ci.org/andrewjstone/funfsm)
 
 [API Documentation](https://docs.rs/funfsm)
 
