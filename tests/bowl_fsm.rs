@@ -3,12 +3,12 @@
 //! meows. If there is already food in the bowl, she will have to eat it before we give her more.
 
 #[macro_use]
-extern crate fsm;
+extern crate funfsm;
 
-use fsm::{Fsm, StateFn, FsmTypes};
-use fsm::constraints::Constraints;
-use fsm::constraints;
-use fsm::fsm_check::Checker;
+use funfsm::{Fsm, StateFn, FsmTypes};
+use funfsm::constraints::Constraints;
+use funfsm::constraints;
+use funfsm::fsm_check::Checker;
 
 const MAX_RESERVES: u8 = 10;
 const REFILL_THRESHOLD: u8 = 9;
