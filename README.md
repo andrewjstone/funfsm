@@ -1,7 +1,7 @@
 [![Build
 Status](https://travis-ci.org/andrewjstone/fsm.svg?branch=master)](https://travis-ci.org/andrewjstone/fsm)
 
-[API Documentation](https://docs.rs/fsm)
+[API Documentation](https://docs.rs/funfsm)
 
 ### Usage
 
