@@ -2,3 +2,7 @@
 name = "funfsm"
 version = "0.1.0"
 authors = ["Andrew J. Stone <andrew.j.stone.1@gmail.com>"]
+description = "An FSM library where the states are functions"
+repository = "https://github.com/andrewjstone/funfsm"
+keywords = ["fsm", "actor"]
+license = "Apache-2.0"

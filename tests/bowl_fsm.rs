@@ -114,7 +114,7 @@ fn test_state_transitions() {
         assert_eq!(ctx.contents, 0);
     }
     fsm.send(BowlMsg::CatMsg(CatMsg::Meow));
-    {
+   {
         let (name, ctx) = fsm.get_state();
         assert_eq!(name, "full");
         assert_eq!(ctx.contents, 100);
