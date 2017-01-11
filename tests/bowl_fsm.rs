@@ -5,6 +5,9 @@
 #[macro_use]
 extern crate funfsm;
 
+#[macro_use]
+extern crate assert_matches;
+
 use funfsm::{Fsm, StateFn, FsmTypes};
 use funfsm::constraints::Constraints;
 use funfsm::constraints;
@@ -62,7 +65,6 @@ impl FsmTypes for BowlTypes {
 }
 
 pub fn empty(ctx: &mut Context, msg: BowlMsg) -> (StateFn<BowlTypes>, Vec<StoreReq>) {
-
     if let BowlMsg::CatMsg(CatMsg::Meow) = msg {
         if ctx.reserves > 0 {
             // Fill the bowl
@@ -154,10 +156,48 @@ fn check_constraints(msgs: Vec<BowlMsg>) {
     let mut c = Constraints::new();
     precondition!(c, "empty", |ctx: &Context| ctx.contents == 0);
     precondition!(c, "full", |ctx: &Context| ctx.contents > 0 && ctx.contents <= 100);
-    postcondition!(c, "empty", |ctx: &Context| ctx.contents == 0 || ctx.contents == 100);
+
     invariant!(c, |ctx: &Context| ctx.contents <= 100);
-    transition!(c, "empty", "full", |ctx: &Context| ctx.contents == 100);
-    transition!(c, "full", "empty", |ctx: &Context| ctx.contents == 0);
+
+    transition!(c, "empty" => "full", empty_to_full);
+    transition!(c, "full" => "empty", full_to_empty);
+
     let mut checker = Checker::<BowlTypes>::new(Context::new(), state_fn!(empty), c);
-    assert_eq!(Ok(()), checker.check(msgs));
+    for msg in msgs {
+        assert_matches!(checker.check(msg), Ok(_));
+    }
+}
+
+#[allow(unused_must_use)]
+fn empty_to_full(init_ctx: &Context,
+                 final_ctx: &Context,
+                 msg: &BowlMsg,
+                 _output: &Vec<StoreReq>) -> Result<(), String>
+{
+   let s = "Transition from empty to full";
+   check!(s, init_ctx.contents == 0);
+   check!(s, final_ctx.contents == 100);
+   check!(s, match *msg {
+       BowlMsg::StoreRpy(_) => true,
+       BowlMsg::CatMsg(CatMsg::Meow) => true,
+       _ => false
+   });
+   Ok(())
+}
+
+#[allow(unused_must_use)]
+fn full_to_empty(init_ctx: &Context,
+                 final_ctx: &Context,
+                 msg: &BowlMsg,
+                 _output: &Vec<StoreReq>) -> Result<(), String>
+{
+    let s = "Transition from full to empty";
+    check!(s, init_ctx.contents > 0);
+    check!(s, final_ctx.contents == 0);
+    check!(s, { if let BowlMsg::CatMsg(CatMsg::Eat(_)) = *msg {
+        true
+    } else {
+        false
+    }});
+   Ok(())
 }
