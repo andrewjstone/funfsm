@@ -38,6 +38,9 @@ food bowl, we'd define our types like this:
 ```Rust
 use funfsm::FsmTypes;
 
+const MAX_RESERVES: u8 = 10;
+const REFILL_THRESHOLD: u8 = 9;
+
 #[derive(Debug, Clone)]
 pub struct Context {
     pub contents: u8, // % of the bowl that is full
@@ -179,7 +182,7 @@ FSM for sending.
 }
 
 // Send a message
-let _ = fsm.send(BowlMsg::CatMsg::Meow);
+let _ = fsm.send(BowlMsg::CatMsg(CatMsg::Meow));
 
 // Our bowl was empty, but we have some reserves at home. When the cat meows, the bowl gets
 // refilled. Let's ensure this actually happens.
