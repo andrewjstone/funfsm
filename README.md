@@ -15,7 +15,7 @@ Add the following to your `Cargo.toml`
 
 ```toml
 [dependencies]
-funfsm = "0.1"
+funfsm = "0.2"
 ```
 
 Add this to your crate root
