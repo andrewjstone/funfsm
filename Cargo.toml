@@ -1,6 +1,6 @@
 [package]
 name = "funfsm"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Andrew J. Stone <andrew.j.stone.1@gmail.com>"]
 description = "An FSM library where the states are functions"
 repository = "https://github.com/andrewjstone/funfsm"

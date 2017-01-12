@@ -2,7 +2,7 @@ use fsm::{Fsm, StateFn, FsmTypes};
 use constraints::Constraints;
 
 pub struct Checker<T: FsmTypes> {
-    fsm: Fsm<T>,
+    pub fsm: Fsm<T>,
     constraints: Constraints<T>
 }
 
