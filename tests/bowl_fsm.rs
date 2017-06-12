@@ -174,7 +174,7 @@ fn check_constraints(msgs: Vec<BowlMsg>) {
 fn empty_to_full(init_ctx: &Context,
                  final_ctx: &Context,
                  msg: &BowlMsg,
-                 _output: &Vec<StoreReq>) -> Result<(), String>
+                 _output: &[StoreReq]) -> Result<(), String>
 {
    let s = "Transition from empty to full";
    check!(s, init_ctx.contents == 0);
@@ -190,7 +190,7 @@ fn empty_to_full(init_ctx: &Context,
 fn full_to_empty(init_ctx: &Context,
                  final_ctx: &Context,
                  msg: &BowlMsg,
-                 _output: &Vec<StoreReq>) -> Result<(), String>
+                 _output: &[StoreReq]) -> Result<(), String>
 {
     let s = "Transition from full to empty";
     check!(s, init_ctx.contents > 0);

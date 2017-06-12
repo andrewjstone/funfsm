@@ -3,7 +3,7 @@ use fsm::FsmTypes;
 
 pub type Pred<T: FsmTypes> = Box<Fn(&T::Context) -> bool>;
 pub type TransitionCheck<T: FsmTypes>
-    = fn(&T::Context, &T::Context, &T::Msg, &Vec<T::Output>) -> Result<(), String>;
+    = fn(&T::Context, &T::Context, &T::Msg, &[T::Output]) -> Result<(), String>;
 
 pub struct Constraints<T: FsmTypes> {
     pub preconditions: HashMap<&'static str, Vec<(Pred<T>, String)>>,
