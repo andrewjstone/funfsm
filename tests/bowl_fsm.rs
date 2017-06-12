@@ -2,6 +2,8 @@
 //! the cat food bowl. Our cat is very whiny and will always be fed when her bowl is empty and she
 //! meows. If there is already food in the bowl, she will have to eat it before we give her more.
 
+#![cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
+
 #[macro_use]
 extern crate funfsm;
 
@@ -18,7 +20,7 @@ const REFILL_THRESHOLD: u8 = 9;
 
 // Currently the pub members exist because constraint checking happens outside the impl
 // TODO: Do we move the constraints in?
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Context {
     pub contents: u8, // % of the bowl that is full
     pub reserves: u8, // The amount of bowls of food left in the bag
@@ -107,7 +109,7 @@ pub fn full(ctx: &mut Context, msg: BowlMsg) -> (StateFn<BowlTypes>, Vec<StoreRe
 }
 
 #[test]
-/// Note the blocks are to reduce the borrow window for &ctx returned from fsm.get_state().
+/// Note the blocks are to reduce the borrow window for `&ctx` returned from `fsm.get_state()`.
 fn test_state_transitions() {
     let mut fsm = Fsm::<BowlTypes>::new(Context::new(), state_fn!(empty));
     {
@@ -178,8 +180,7 @@ fn empty_to_full(init_ctx: &Context,
    check!(s, init_ctx.contents == 0);
    check!(s, final_ctx.contents == 100);
    check!(s, match *msg {
-       BowlMsg::StoreRpy(_) => true,
-       BowlMsg::CatMsg(CatMsg::Meow) => true,
+       BowlMsg::StoreRpy(_) | BowlMsg::CatMsg(CatMsg::Meow) => true,
        _ => false
    });
    Ok(())
